@@ -97,6 +97,7 @@ data class Product(
     val brand: String = "jet helmet",
     val name: String = "Caberg Riveira",
     val price: Double = 65.25,
+    val details: String = "RIVIERA V3 has been realized in three shell sizes in order to offer the best fitting proportion between the shell volume and the motorcyclist's head.."
 )
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -173,7 +174,7 @@ fun ProductItem(product: Product) {
 }
 
 @Composable
-fun AppBar() {
+private fun AppBar() {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
