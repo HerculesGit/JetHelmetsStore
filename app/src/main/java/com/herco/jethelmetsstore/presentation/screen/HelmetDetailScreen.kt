@@ -3,6 +3,7 @@ package com.herco.jethelmetsstore.presentation.screen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,20 +35,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.herco.jethelmetsstore.R
 import com.herco.jethelmetsstore.presentation.AppConstants
 import com.herco.jethelmetsstore.ui.theme.JetHelmetsStoreTheme
 
-@Preview
 @Composable
-fun HelmetDetailScreen() {
-    val product = Product()
+fun HelmetDetailScreen(navController: NavController, productId: String?) {
+    val product = Product(id = "0")
 
     JetHelmetsStoreTheme {
         Scaffold(
-            topBar = { AppBar() },
+            topBar = {
+                AppBar(onBackTapped = { navController.popBackStack() })
+            },
             bottomBar = {
                 Button(
                     onClick = { },
@@ -189,7 +191,7 @@ fun ChooseHelmetSize(sizes: List<String>) {
 }
 
 @Composable
-private fun AppBar() {
+private fun AppBar(onBackTapped: () -> Unit) {
     val iconPadding = AppConstants.smallMargin * 1.5f
     Row(
         modifier = Modifier
@@ -203,7 +205,10 @@ private fun AppBar() {
             border = BorderStroke(0.5.dp, Color.Gray.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(size = 15.dp)
         ) {
-            Box {
+            Box(
+                modifier =
+                Modifier.clickable { onBackTapped() },
+            ) {
                 Icon(
                     Icons.Rounded.ArrowBack,
                     modifier = Modifier.padding(all = iconPadding),

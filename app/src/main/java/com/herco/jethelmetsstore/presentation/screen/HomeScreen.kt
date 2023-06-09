@@ -3,6 +3,7 @@ package com.herco.jethelmetsstore.presentation.screen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,19 +41,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.herco.jethelmetsstore.R
 import com.herco.jethelmetsstore.presentation.AppConstants
 import com.herco.jethelmetsstore.presentation.component.HelmetSearchField
+import com.herco.jethelmetsstore.presentation.navigation.HelmetDetailRoute
+import com.herco.jethelmetsstore.presentation.navigation.params
 import com.herco.jethelmetsstore.ui.theme.JetHelmetsStoreTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) {
     JetHelmetsStoreTheme {
         Scaffold(
             topBar = { TopAppBar(title = { AppBar() }) }
@@ -86,7 +88,7 @@ fun HomeScreen() {
                         Text(text = "See All")
                     }
                     Spacer(modifier = Modifier.padding(vertical = AppConstants.smallMargin))
-                    PopularProducts()
+                    PopularProducts(navController)
                 }
             }
         }
@@ -94,6 +96,7 @@ fun HomeScreen() {
 }
 
 data class Product(
+    val id: String,
     val brand: String = "jet helmet",
     val name: String = "Caberg Riveira",
     val price: Double = 65.25,
@@ -102,43 +105,41 @@ data class Product(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PopularProducts() {
-    val popularProducts = List(size = 10) { Product() }
+fun PopularProducts(navController: NavController) {
+    val popularProducts = List(size = 10) { Product(id = it.toString()) }
     val productSize: Dp = (LocalConfiguration.current.screenWidthDp.dp) / 2
 
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
-        popularProducts.forEachIndexed { index, product ->
+        popularProducts.forEachIndexed { _, product ->
             Box(
                 modifier = Modifier
                     .height(productSize * 1.5f - AppConstants.mediumMargin)
                     .width(productSize - AppConstants.smallMargin)
             ) {
-                ProductItem(product)
+                ProductItem(product, onTap = {
+                    navController.navigate(
+                        params(
+                            route = HelmetDetailRoute.route,
+                            argument = product.id
+                        )
+                    )
+                })
             }
         }
     }
-//    Column(
-////        columns = GridCells.Fixed(2),
-//
-////        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-//        content = {
-////            items(popularProducts) { ProductItem(it) }
-//            ProductItem(popularProducts.first())
-//        },
-////        userScrollEnabled = false
-//    )
 }
 
 @Composable
-fun ProductItem(product: Product) {
+fun ProductItem(product: Product, onTap: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .padding(horizontal = AppConstants.smallMargin)
             .padding(bottom = AppConstants.mediumMargin)
             .fillMaxWidth()
+            .clickable { onTap() }
     ) {
         Surface(
             border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f)),
