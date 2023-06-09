@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,16 +42,26 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.herco.jethelmetsstore.R
 import com.herco.jethelmetsstore.presentation.AppConstants
 import com.herco.jethelmetsstore.presentation.component.HelmetSearchField
+import com.herco.jethelmetsstore.presentation.model.Product
 import com.herco.jethelmetsstore.presentation.navigation.HelmetDetailRoute
 import com.herco.jethelmetsstore.presentation.navigation.params
 import com.herco.jethelmetsstore.ui.theme.JetHelmetsStoreTheme
 
+
+@Preview
+@Composable
+fun HomeScreenPreview() {
+    HomeScreen(navController = rememberNavController())
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,10 +93,17 @@ fun HomeScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = AppConstants.mediumMargin),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "Popular Products")
-                        Text(text = "See All")
+                        Text(
+                            text = "Popular Products",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "See All", style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     Spacer(modifier = Modifier.padding(vertical = AppConstants.smallMargin))
                     PopularProducts(navController)
@@ -94,14 +112,6 @@ fun HomeScreen(navController: NavController) {
         }
     }
 }
-
-data class Product(
-    val id: String,
-    val brand: String = "jet helmet",
-    val name: String = "Caberg Riveira",
-    val price: Double = 65.25,
-    val details: String = "RIVIERA V3 has been realized in three shell sizes in order to offer the best fitting proportion between the shell volume and the motorcyclist's head.."
-)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -148,6 +158,7 @@ fun ProductItem(product: Product, onTap: () -> Unit = {}) {
                 .weight(2f)
                 .fillMaxWidth()
                 .fillMaxHeight()
+                .padding(bottom = AppConstants.smallMargin)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_helmet_logo),
@@ -155,20 +166,42 @@ fun ProductItem(product: Product, onTap: () -> Unit = {}) {
                 contentScale = ContentScale.Crop
             )
         }
-        Column(
-            Modifier.weight(1f),
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            Text(text = product.name)
-            Text(text = product.brand)
+        Column(verticalArrangement = Arrangement.Bottom) {
+            Text(
+                text = product.brand.uppercase(), style = MaterialTheme.typography.labelLarge.copy(
+                    fontSize = MaterialTheme.typography.labelLarge.fontSize.div(1.1f)
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Text(
+                text = product.name, style = MaterialTheme.typography.titleLarge.copy(
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize.div(1.1f)
+                ),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = product.price.toString(), color = MaterialTheme.colorScheme.primary)
-                Icon(
-                    imageVector = Icons.Rounded.Add, contentDescription = "Add to cart button",
+                Text(
+                    text = product.price.toString(), color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.labelLarge.fontSize.div(1.1f)
+                    )
                 )
+                Surface(
+                    border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f)),
+                    shape = CircleShape,
+                    modifier = Modifier.padding(all = AppConstants.smallMargin)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Add, contentDescription = "Add to cart button",
+                    )
+                }
             }
         }
     }
@@ -191,7 +224,11 @@ private fun AppBar() {
             contentDescription = stringResource(id = R.string.app_name),
             modifier = Modifier.size(64.dp)
         )
-        Icon(imageVector = Icons.Rounded.Notifications, contentDescription = null)
+        Box(
+            modifier = Modifier.padding(end = AppConstants.mediumMargin)
+        ) {
+            Icon(imageVector = Icons.Rounded.Notifications, contentDescription = null)
+        }
     }
 }
 

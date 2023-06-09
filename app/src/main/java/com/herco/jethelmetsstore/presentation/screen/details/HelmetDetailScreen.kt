@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -47,8 +49,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.herco.jethelmetsstore.R
 import com.herco.jethelmetsstore.presentation.AppConstants
+import com.herco.jethelmetsstore.presentation.model.Product
 import com.herco.jethelmetsstore.presentation.rememberLifecycleEvent
-import com.herco.jethelmetsstore.presentation.screen.home.Product
 import com.herco.jethelmetsstore.ui.theme.JetHelmetsStoreTheme
 
 @Preview
@@ -97,7 +99,8 @@ fun HelmetDetailScreen(
                             .padding(vertical = AppConstants.smallMargin)
                     )
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             if (productUiState.loading) Box(
                 modifier = Modifier.fillMaxSize(),
@@ -116,39 +119,69 @@ fun HelmetDetailScreen(
                         .padding(top = AppConstants.largeMargin)
                         .fillMaxSize()
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.Bottom,
-                        modifier = Modifier
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = AppConstants.mediumMargin)
-                            .fillMaxSize()
-                    ) {
-                        val product = productUiState.product!!
-
-                        Text(text = product.brand)
-                        Text(text = product.name)
-                        Text(
-                            text = product.price.toString(),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-
-                        HelmetImageDetails()
-                        ChooseHelmetSize(
-                            sizes = listOf("XS", "S", "M", "L", "XL"),
-                            viewModel = viewModel
-                        )
-                        Text(text = product.details)
-
-                        //                    Button(
-                        //                        onClick = { },
-                        //                        shape = RoundedCornerShape(size = 15.dp),
-                        //                        modifier = Modifier.fillMaxWidth()
-                        //                    ) {
-                        //                        Text(text = "Add to Bag")
-                        //                    }
-                    }
+                    Body(
+                        productUiState = viewModel.uiState.collectAsState().value,
+                        viewModel = viewModel
+                    )
                 }
         }
+    }
+}
+
+@Preview
+@Composable
+fun BodyPreview() {
+    val uiState = ProductUiState(
+        loading = false,
+        product = Product("1"),
+        productSize = "XS"
+    )
+    val viewModel: HelmetDetailViewModel = viewModel()
+
+    JetHelmetsStoreTheme {
+        Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+            Body(productUiState = uiState, viewModel = viewModel)
+        }
+    }
+}
+
+@Composable
+fun Body(productUiState: ProductUiState, viewModel: HelmetDetailViewModel) {
+    val product = productUiState.product!!
+    Column(
+        verticalArrangement = Arrangement.Bottom,
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = AppConstants.mediumMargin)
+            .fillMaxSize(),
+    ) {
+        Text(
+            text = product.brand.uppercase(), style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Text(
+            text = product.name, style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Text(
+            text = "R$${product.price}",
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+        )
+
+        Spacer(modifier = Modifier.height(AppConstants.mediumMargin))
+        HelmetImageDetails()
+        ChooseHelmetSize(
+            sizes = listOf("XS", "S", "M", "L", "XL"),
+            viewModel = viewModel
+        )
+        Text(
+            text = product.details,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

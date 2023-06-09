@@ -2,7 +2,7 @@ package com.herco.jethelmetsstore.presentation.screen.details
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.herco.jethelmetsstore.presentation.screen.home.Product
+import com.herco.jethelmetsstore.presentation.model.Product
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 data class ProductUiState(
     val loading: Boolean = true,
     val product: Product? = null,
-    val productSize: String? = "XL"
+    val productSize: String? = "XS"
 )
 
 class HelmetDetailViewModel : ViewModel() {
@@ -28,7 +28,7 @@ class HelmetDetailViewModel : ViewModel() {
             _uiState.update { currentState ->
                 currentState.copy(loading = true, product = null, productSize = null)
             }
-            delay(timeMillis = 2000)
+            delay(timeMillis = 1000)
             _uiState.update {
                 it.copy(
                     loading = false,
