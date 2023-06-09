@@ -14,7 +14,8 @@ import kotlinx.coroutines.launch
 data class ProductUiState(
     val loading: Boolean = true,
     val product: Product? = null,
-    val productSize: String? = "XS"
+    val productSize: String? = "XS",
+    val isFavorite: Boolean = false,
 )
 
 class HelmetDetailViewModel : ViewModel() {
@@ -33,7 +34,8 @@ class HelmetDetailViewModel : ViewModel() {
                 it.copy(
                     loading = false,
                     product = Product(id = productId),
-                    productSize = "XS"
+                    productSize = "XS",
+                    isFavorite = Product(id = productId).favorite
                 )
             }
 
@@ -42,6 +44,10 @@ class HelmetDetailViewModel : ViewModel() {
 
     fun updateProductSize(productSize: String) {
         _uiState.update { it.copy(productSize = productSize) }
+    }
+
+    fun toggleFavorite() {
+        _uiState.update { it.copy(isFavorite = !it.isFavorite) }
     }
 
 }

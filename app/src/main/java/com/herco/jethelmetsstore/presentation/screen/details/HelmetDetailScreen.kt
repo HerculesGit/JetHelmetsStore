@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Button
@@ -82,8 +83,7 @@ fun HelmetDetailScreen(
         Scaffold(
             topBar = {
                 AppBar(
-                    onBackTapped = { navController.popBackStack() },
-                    loading = productUiState.loading
+                    onBackTapped = { navController.popBackStack() }, viewModel = viewModel
                 )
             },
             bottomBar = {
@@ -277,8 +277,10 @@ fun ChooseHelmetSize(sizes: List<String>, viewModel: HelmetDetailViewModel) {
 }
 
 @Composable
-private fun AppBar(onBackTapped: () -> Unit, loading: Boolean) {
+private fun AppBar(onBackTapped: () -> Unit, viewModel: HelmetDetailViewModel) {
     val iconPadding = AppConstants.smallMargin * 1.5f
+    val uiState by viewModel.uiState.collectAsState()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -308,13 +310,21 @@ private fun AppBar(onBackTapped: () -> Unit, loading: Boolean) {
             border = BorderStroke(0.5.dp, Color.Gray.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(size = 15.dp)
         ) {
-            if (!loading)
-                Icon(
-                    Icons.Rounded.Favorite,
-                    modifier = Modifier.padding(iconPadding),
-                    contentDescription = stringResource(id = R.string.menu_hamburger),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+            if (!uiState.loading)
+                Box(
+                    modifier =
+                    Modifier.clickable {
+                        viewModel.toggleFavorite()
+                    },
+                ) {
+                    Icon(
+                        if (uiState.isFavorite) Icons.Rounded.Favorite else Icons.Outlined.FavoriteBorder,
+                        modifier = Modifier
+                            .padding(iconPadding),
+                        contentDescription = stringResource(id = R.string.menu_hamburger),
+                        tint = if (uiState.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    )
+                }
         }
     }
 
