@@ -1,4 +1,4 @@
-package com.herco.jethelmetsstore.presentation.screen
+package com.herco.jethelmetsstore.presentation.screen.details
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -24,34 +24,68 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.herco.jethelmetsstore.R
 import com.herco.jethelmetsstore.presentation.AppConstants
+import com.herco.jethelmetsstore.presentation.rememberLifecycleEvent
+import com.herco.jethelmetsstore.presentation.screen.home.Product
 import com.herco.jethelmetsstore.ui.theme.JetHelmetsStoreTheme
 
+@Preview
 @Composable
-fun HelmetDetailScreen(navController: NavController, productId: String?) {
-    val product = Product(id = "0")
+fun HelmetDetailScreenPreview() {
+    HelmetDetailScreen(
+        navController = rememberNavController(),
+        productId = "0"
+    )
+}
+
+@Composable
+fun HelmetDetailScreen(
+    navController: NavController,
+    productId: String?,
+    viewModel: HelmetDetailViewModel = viewModel()
+) {
+    val lifecycleEvent = rememberLifecycleEvent()
+
+    LaunchedEffect(lifecycleEvent) {
+        if (lifecycleEvent == Lifecycle.Event.ON_RESUME) {
+            viewModel.fetchHelmet(productId = productId!!)
+        }
+    }
+
+    val productUiState by viewModel.uiState.collectAsState()
 
     JetHelmetsStoreTheme {
         Scaffold(
             topBar = {
-                AppBar(onBackTapped = { navController.popBackStack() })
+                AppBar(
+                    onBackTapped = { navController.popBackStack() },
+                    loading = productUiState.loading
+                )
             },
             bottomBar = {
-                Button(
+                if (productUiState.loading) Box {} else Button(
                     onClick = { },
                     shape = RoundedCornerShape(size = 15.dp),
                     modifier = Modifier
@@ -65,40 +99,55 @@ fun HelmetDetailScreen(navController: NavController, productId: String?) {
                 }
             }
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(it)
-                    .padding(top = AppConstants.largeMargin)
-                    .fillMaxSize()
+            if (productUiState.loading) Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Column(
-                    verticalArrangement = Arrangement.Bottom,
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = AppConstants.mediumMargin)
-                        .fillMaxSize()
-                ) {
-                    Text(text = product.brand)
-                    Text(text = product.name)
-                    Text(
-                        text = product.price.toString(),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    HelmetImageDetails()
-                    ChooseHelmetSize(sizes = listOf("XS", "S", "M", "L", "XL"))
-                    Text(text = product.details)
-
-                    //                    Button(
-                    //                        onClick = { },
-                    //                        shape = RoundedCornerShape(size = 15.dp),
-                    //                        modifier = Modifier.fillMaxWidth()
-                    //                    ) {
-                    //                        Text(text = "Add to Bag")
-                    //                    }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    Text(text = "Loading...")
                 }
             }
+            else
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(it)
+                        .padding(top = AppConstants.largeMargin)
+                        .fillMaxSize()
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.Bottom,
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = AppConstants.mediumMargin)
+                            .fillMaxSize()
+                    ) {
+                        val product = productUiState.product!!
+
+                        Text(text = product.brand)
+                        Text(text = product.name)
+                        Text(
+                            text = product.price.toString(),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        HelmetImageDetails()
+                        ChooseHelmetSize(
+                            sizes = listOf("XS", "S", "M", "L", "XL"),
+                            viewModel = viewModel
+                        )
+                        Text(text = product.details)
+
+                        //                    Button(
+                        //                        onClick = { },
+                        //                        shape = RoundedCornerShape(size = 15.dp),
+                        //                        modifier = Modifier.fillMaxWidth()
+                        //                    ) {
+                        //                        Text(text = "Add to Bag")
+                        //                    }
+                    }
+                }
         }
     }
 }
@@ -162,16 +211,18 @@ fun HelmetImageDetails() {
 }
 
 @Composable
-fun ChooseHelmetSize(sizes: List<String>) {
-    val selectedSize = "XS"
+fun ChooseHelmetSize(sizes: List<String>, viewModel: HelmetDetailViewModel) {
+
+    val productUiState by viewModel.uiState.collectAsState()
 
     LazyRow(
         modifier = Modifier.padding(vertical = AppConstants.mediumMargin),
         content = {
             items(sizes) {
 
-                val color = if (it == selectedSize) MaterialTheme.colorScheme.primary else
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                val color =
+                    if (it == productUiState.productSize) MaterialTheme.colorScheme.primary else
+                        MaterialTheme.colorScheme.onSurfaceVariant
 
                 Box(modifier = Modifier.padding(end = AppConstants.mediumMargin)) {
                     Surface(
@@ -180,7 +231,9 @@ fun ChooseHelmetSize(sizes: List<String>) {
                         modifier = Modifier.size(45.dp)
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable { viewModel.updateProductSize(it) },
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) { Text(text = it, color = color) }
@@ -191,7 +244,7 @@ fun ChooseHelmetSize(sizes: List<String>) {
 }
 
 @Composable
-private fun AppBar(onBackTapped: () -> Unit) {
+private fun AppBar(onBackTapped: () -> Unit, loading: Boolean) {
     val iconPadding = AppConstants.smallMargin * 1.5f
     Row(
         modifier = Modifier
@@ -222,12 +275,13 @@ private fun AppBar(onBackTapped: () -> Unit) {
             border = BorderStroke(0.5.dp, Color.Gray.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(size = 15.dp)
         ) {
-            Icon(
-                Icons.Rounded.Favorite,
-                modifier = Modifier.padding(iconPadding),
-                contentDescription = stringResource(id = R.string.menu_hamburger),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            if (!loading)
+                Icon(
+                    Icons.Rounded.Favorite,
+                    modifier = Modifier.padding(iconPadding),
+                    contentDescription = stringResource(id = R.string.menu_hamburger),
+                    tint = MaterialTheme.colorScheme.primary
+                )
         }
     }
 

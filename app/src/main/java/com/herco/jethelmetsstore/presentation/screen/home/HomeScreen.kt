@@ -1,4 +1,4 @@
-package com.herco.jethelmetsstore.presentation.screen
+package com.herco.jethelmetsstore.presentation.screen.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image

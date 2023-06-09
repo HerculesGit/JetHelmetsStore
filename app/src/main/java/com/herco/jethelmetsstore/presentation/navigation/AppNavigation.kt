@@ -6,8 +6,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.herco.jethelmetsstore.presentation.screen.HelmetDetailScreen
-import com.herco.jethelmetsstore.presentation.screen.HomeScreen
+import com.herco.jethelmetsstore.presentation.screen.details.HelmetDetailScreen
+import com.herco.jethelmetsstore.presentation.screen.home.HomeScreen
 
 @Composable
 fun AppNavigation() {
