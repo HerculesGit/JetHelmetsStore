@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +37,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,84 +51,120 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.herco.jethelmetsstore.R
+import com.herco.jethelmetsstore.di.UseCaseModule
 import com.herco.jethelmetsstore.presentation.AppConstants
 import com.herco.jethelmetsstore.presentation.component.HelmetSearchField
 import com.herco.jethelmetsstore.presentation.model.Product
 import com.herco.jethelmetsstore.presentation.navigation.HelmetDetailRoute
 import com.herco.jethelmetsstore.presentation.navigation.params
+import com.herco.jethelmetsstore.presentation.rememberLifecycleEvent
 import com.herco.jethelmetsstore.ui.theme.JetHelmetsStoreTheme
 
 
 @Preview
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(navController = rememberNavController())
+    HomeScreen(
+        navController = rememberNavController(),
+        viewModel = HomeViewModel(UseCaseModule.provideGetPopularHelmetsUseCase())
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
     JetHelmetsStoreTheme {
+
+        val uiState by viewModel.uiState.collectAsState()
+        val lifecycleEvent = rememberLifecycleEvent()
+
+        LaunchedEffect(lifecycleEvent) {
+            if (lifecycleEvent == Lifecycle.Event.ON_RESUME) {
+                viewModel.fetchPopularProducts()
+            }
+        }
         Scaffold(
             topBar = { TopAppBar(title = { AppBar() }) }
         ) { contentPadding ->
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(contentPadding)
             ) {
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(contentPadding)
-                        .background(color = MaterialTheme.colorScheme.surface)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(vertical = AppConstants.largeMargin)
-                            .padding(horizontal = AppConstants.mediumMargin)
-                    ) {
-                        HelmetSearchField(onValueChange = {})
-                    }
 
-                    HelmetCategory()
-                    Spacer(modifier = Modifier.padding(vertical = AppConstants.mediumMargin))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = AppConstants.mediumMargin),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Popular Products",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "See All", style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Spacer(modifier = Modifier.padding(vertical = AppConstants.smallMargin))
-                    PopularProducts(navController)
+                if (uiState.loading) Column(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator()
+                    Spacer(Modifier.height(AppConstants.smallMargin))
+                    Text(text = "Loading...")
+                }
+                else if (uiState.msgError != null) Column(modifier = Modifier.fillMaxSize()) {
+                    Text(text = "Ops!")
+                    Spacer(Modifier.height(AppConstants.smallMargin))
+                    Text(text = uiState.msgError!!)
+                }
+                else {
+                    BuildBody(navController = navController, viewModel = viewModel)
                 }
             }
         }
     }
 }
 
+@Composable
+fun BuildBody(navController: NavController, viewModel: HomeViewModel) {
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+
+            .background(color = MaterialTheme.colorScheme.surface)
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(vertical = AppConstants.largeMargin)
+                .padding(horizontal = AppConstants.mediumMargin)
+        ) {
+            HelmetSearchField(onValueChange = {})
+        }
+
+        HelmetCategory()
+        Spacer(modifier = Modifier.padding(vertical = AppConstants.mediumMargin))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppConstants.mediumMargin),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Popular Products",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "See All", style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(modifier = Modifier.padding(vertical = AppConstants.smallMargin))
+        PopularProducts(navController, viewModel)
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PopularProducts(navController: NavController) {
-    val popularProducts = List(size = 10) { Product(id = it.toString()) }
+fun PopularProducts(navController: NavController, viewModel: HomeViewModel) {
     val productSize: Dp = (LocalConfiguration.current.screenWidthDp.dp) / 2
+
+    val uiState by viewModel.uiState.collectAsState()
 
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
-        popularProducts.forEachIndexed { _, product ->
+        uiState.products.forEachIndexed { _, product ->
             Box(
                 modifier = Modifier
                     .height(productSize * 1.5f - AppConstants.mediumMargin)

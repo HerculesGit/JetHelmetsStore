@@ -26,7 +26,7 @@ class HelmetRepository(private val api: HelmetApi) : IHelmetRepository {
             val helmetList = response.map { helmetDto -> helmetDto.toDomain() }.toList()
             Resource.Success(data = helmetList)
         } catch (e: Exception) {
-            Resource.Error("Failed to fetch popular products with")
+            Resource.Error("Failed to fetch popular products\ncause=${e.cause}")
         }
     }
 }

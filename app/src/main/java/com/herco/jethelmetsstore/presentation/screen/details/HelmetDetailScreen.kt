@@ -49,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.herco.jethelmetsstore.R
+import com.herco.jethelmetsstore.di.UseCaseModule
 import com.herco.jethelmetsstore.presentation.AppConstants
 import com.herco.jethelmetsstore.presentation.model.Product
 import com.herco.jethelmetsstore.presentation.rememberLifecycleEvent
@@ -59,7 +60,9 @@ import com.herco.jethelmetsstore.ui.theme.JetHelmetsStoreTheme
 fun HelmetDetailScreenPreview() {
     HelmetDetailScreen(
         navController = rememberNavController(),
-        productId = "0"
+        productId = "0",
+        viewModel = HelmetDetailViewModel(UseCaseModule.provideGetProductUseCase())
+
     )
 }
 
@@ -67,7 +70,7 @@ fun HelmetDetailScreenPreview() {
 fun HelmetDetailScreen(
     navController: NavController,
     productId: String?,
-    viewModel: HelmetDetailViewModel = viewModel()
+    viewModel: HelmetDetailViewModel
 ) {
     val lifecycleEvent = rememberLifecycleEvent()
 
@@ -174,7 +177,7 @@ fun Body(productUiState: ProductUiState, viewModel: HelmetDetailViewModel) {
         Spacer(modifier = Modifier.height(AppConstants.mediumMargin))
         HelmetImageDetails()
         ChooseHelmetSize(
-            sizes = listOf("XS", "S", "M", "L", "XL"),
+            sizes = product.sizes,
             viewModel = viewModel
         )
         Text(

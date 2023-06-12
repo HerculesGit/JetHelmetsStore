@@ -6,8 +6,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.herco.jethelmetsstore.di.UseCaseModule
 import com.herco.jethelmetsstore.presentation.screen.details.HelmetDetailScreen
+import com.herco.jethelmetsstore.presentation.screen.details.HelmetDetailViewModel
 import com.herco.jethelmetsstore.presentation.screen.home.HomeScreen
+import com.herco.jethelmetsstore.presentation.screen.home.HomeViewModel
 
 @Composable
 fun AppNavigation() {
@@ -17,7 +20,9 @@ fun AppNavigation() {
         composable(
             route = HomeRoute.route,
         ) {
-            HomeScreen(navController)
+
+            val homeViewModel = HomeViewModel(UseCaseModule.provideGetPopularHelmetsUseCase())
+            HomeScreen(navController, viewModel = homeViewModel)
         }
         composable(
             route = HelmetDetailRoute.route,
@@ -26,7 +31,14 @@ fun AppNavigation() {
             })
         ) { backStackEntry ->
             val productId = backStackEntry.arguments?.getString(HelmetDetailRoute.argument)
-            HelmetDetailScreen(navController, productId = productId)
+            val helmetDetailsViewModel =
+                HelmetDetailViewModel(UseCaseModule.provideGetProductUseCase())
+
+            HelmetDetailScreen(
+                navController,
+                productId = productId,
+                viewModel = helmetDetailsViewModel
+            )
         }
     }
 }

@@ -22,11 +22,11 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField "String", "BASE_URL", "\"http://localhost:3200/api\""
+            buildConfigField "String", "BASE_URL", "\"http://10.0.2.2:3200/api/\""
         }
 
         release {
-            buildConfigField "String", "BASE_URL", "\"http://www.helmetstore.com/api\""
+            buildConfigField "String", "BASE_URL", "\"http://www.helmetstore.com/api/\""
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
