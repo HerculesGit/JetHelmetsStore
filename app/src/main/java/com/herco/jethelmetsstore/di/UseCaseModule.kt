@@ -1,20 +1,19 @@
 package com.herco.jethelmetsstore.di
 
+import android.content.Context
 import com.herco.jethelmetsstore.domain.usecase.GetPopularHelmetsUseCase
 import com.herco.jethelmetsstore.domain.usecase.GetProductUseCase
 import com.herco.jethelmetsstore.domain.usecase.UpdateProductUseCase
 
-class UseCaseModule {
+class UseCaseModule(private val context: Context) {
 
-    companion object {
+    private val repositoryModule = RepositoryModule()
+    private val helmetRepository = repositoryModule.provideHelmetRepository(context)
 
-        private val repositoryModule = RepositoryModule()
-        private val helmetRepository = repositoryModule.provideHelmetRepository();
+    fun provideGetPopularHelmetsUseCase() = GetPopularHelmetsUseCase(helmetRepository)
 
-        fun provideGetPopularHelmetsUseCase() = GetPopularHelmetsUseCase(helmetRepository)
+    fun provideGetProductUseCase() = GetProductUseCase(helmetRepository)
 
-        fun provideGetProductUseCase() = GetProductUseCase(helmetRepository)
+    fun provideUpdateProductUseCase() = UpdateProductUseCase(helmetRepository)
 
-        fun provideUpdateProductUseCase() = UpdateProductUseCase(helmetRepository)
-    }
 }
